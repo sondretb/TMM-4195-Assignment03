@@ -1,0 +1,23 @@
+{
+    "name": "Honda s2000",
+    "description": "Fantastic two seater cabrio.",
+    "image": "",
+    "attributes": [
+        {
+            "trait_type": "Model",
+            "value": "s2000"
+        },
+        {
+            "trait_type": "Colour",
+            "value": "Red"
+        },
+        {
+            "trait_type": "original_Value",
+            "value": 400000
+        },
+        {
+            "trait_type": "Year",
+            "value": 2003
+        }
+    ]
+}
