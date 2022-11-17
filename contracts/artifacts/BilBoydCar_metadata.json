@@ -112,11 +112,6 @@
 						"type": "string"
 					},
 					{
-						"internalType": "string",
-						"name": "color",
-						"type": "string"
-					},
-					{
 						"internalType": "uint256",
 						"name": "year",
 						"type": "uint256"
@@ -196,11 +191,6 @@
 						"type": "string"
 					},
 					{
-						"internalType": "string",
-						"name": "color",
-						"type": "string"
-					},
-					{
 						"internalType": "uint256",
 						"name": "year",
 						"type": "uint256"
@@ -239,6 +229,41 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "getCarList",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "model",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "year",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "originalValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "milage",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct BilBoydCar.Car[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -247,7 +272,7 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "yearsOfDivingExperience",
+						"name": "yearsOfDrivingExperience",
 						"type": "uint256"
 					},
 					{
@@ -670,10 +695,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0x534e881a4aa06175911d157c82b8096339f320318005c6457e3eaa94c17a4a87",
+			"keccak256": "0x70f510ae2bf31eafcfa9defb447deab01f7c464f3f16ea5e0724d008569362b3",
+			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://a5193e57acbe39be1a2f141073f39e94a692525bc6ffd70fc3cbef07266dea4c",
-				"dweb:/ipfs/QmauhZttaM2jhRNYfhycrfaV9w9fcp8JzAB9My6kxGrZaq"
+				"bzz-raw://afc5b2cb96f139d7ca6280b16b31d2d6052d0120e9ee3844f582cb67d45ed639",
+				"dweb:/ipfs/Qmf8YhDj8o2CZT5rCWFqxVu5iPwyakyg1R6VVoH5FLhi7M"
 			]
 		}
 	},
