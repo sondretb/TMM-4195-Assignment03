@@ -253,6 +253,7 @@ contract BilBoydCar is ERC721, Ownable{
     }
 
     function extendContractByOneYear(MilageCap newMilageCap) external payable{
+
         require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
         require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
         uint256 tokenId = addressToContract[msg.sender].tokenId;
@@ -275,4 +276,8 @@ contract BilBoydCar is ERC721, Ownable{
 
         addressToContract[msg.sender] = customerContract;
     }
+
+    
+
+
 }
