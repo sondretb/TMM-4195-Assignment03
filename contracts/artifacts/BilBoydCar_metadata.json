@@ -230,6 +230,32 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "calculateLeasingBill",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "collectCar",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address payable",
 						"name": "customer",
 						"type": "address"
@@ -387,6 +413,13 @@
 			},
 			{
 				"inputs": [],
+				"name": "makeMontlyPayment",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "name",
 				"outputs": [
 					{
@@ -396,40 +429,6 @@
 					}
 				],
 				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bytes",
-						"name": "",
-						"type": "bytes"
-					}
-				],
-				"name": "onERC721Received",
-				"outputs": [
-					{
-						"internalType": "bytes4",
-						"name": "",
-						"type": "bytes4"
-					}
-				],
-				"stateMutability": "pure",
 				"type": "function"
 			},
 			{
@@ -589,6 +588,19 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "towLeasedCar",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -813,11 +825,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0xca36f94632f04943a28236252b2f244eef22314abb3ab577c9337746ccaac4bb",
+			"keccak256": "0xd1044f760cf1c24bb5ed157084ee7ed5923d0709e6a6378fb3c8471ee4261ed9",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://3f9c30ace86bc5b7ada0881b9a373f48936f768bb1e46d3d314fb0287bc1cac2",
-				"dweb:/ipfs/QmdJKDWKzSWC5WMnU3PnD1A4idFGG9krLTx3oDJqkX5kc5"
+				"bzz-raw://ff1b2a5d1cc34e502fc8f14685fa1b914139d539994d4407485765fb29f14f1d",
+				"dweb:/ipfs/QmRJdgjAE6kBM2g5aCjnmfhXLPjgha9RW1pesUMwroHpMo"
 			]
 		}
 	},
