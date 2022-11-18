@@ -1,63 +1,134 @@
+//SPDX-License-Identifier: UNLICENSED
+
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BilBoydCar is ERC721, Ownable{
+contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
     
+
+    //Stores the car attributes that decide the montly quota.
     struct Car {
         string model;
-        string color;
         uint256 year;
         uint256 originalValue;
         uint256 milage;
+        bool isAvailable;
     }
 
-/*
-    enum contractDuration {Day, Week, ThreeWeeks, Month};
-    mapping(contractDuration => uint256) contractDurationToInt
+    struct leaseContract {
+        uint256 tokenId;
+        ContractDuration duration;
+        MilageCap milageCap;
+        uint256 monthlyQuota;
+        bool isActive;
+    }
 
-    enum milageCap {Low, Medium, High, FreeRange}
-    mapping(milageCap => uint256) milageCapToInt
-*/
+    enum ContractDuration { TwoYears, ThreeYears, FourYears}
+    enum MilageCap {Low, Medium, High}
+    //Low = 30000, Medium = 45000, High = 60000
 
-    // tokenId should be lenght of boydCars
+
+    //list of cars, so we don't need to access the metadata. more memory but ok    
+        // tokenId should be lenght of boydCars
     Car[] public boydCars;
-    //list of cars, so we don't need to access the metadata. more memory but ok
+    mapping(address => leaseContract) addressToContract;
+    mapping(address => uint256) addressToTransferedPayment;
+    
+    
 
-    //Example: to get model of car with tokenID = 'id'
-    //boyCars[id].model
-
-    constructor () public ERC721 ("Bil Boyd Car", "BBCAR"){
-        addCar("Honda s2000", "red", 2003, 400000, 2000);
-        addCar("Toyota Yaris", "white", 2010, 289000, 2000);
-        addCar("Audi A4", "black", 2018, 410000, 2000);
-        addCar("Jaguar I-Pace S", "titanium", 2021, 724900, 2000);
+    constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
+        addCar("Honda s2000", 2003, 400000, 2000);
+        addCar("Toyota Yaris", 2010, 289000, 2000);
+        addCar("Audi A4", 2018, 410000, 2000);
+        addCar("Jaguar I-Pace S", 2021, 724900, 2000);
     }
 
-    function addCar(string memory model, string memory color, uint256 year, uint256 originalValue, uint256 milage) public onlyOwner returns(uint256){
+    function onERC721Received(address, address, uint256, bytes calldata) external override pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+
+    function getCarList() public view returns(Car[] memory){
+        return boydCars;
+    }
+
+    function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage) public onlyOwner returns(uint256){
 
         uint256 tokenId = boydCars.length;
-        _safeMint(msg.sender, tokenId);
+        _safeMint(owner(), tokenId);
 
         boydCars.push(
             Car(
-                model,
-                color, 
+                model, 
                 year, 
                 originalValue,
-                milage
+                milage,
+                true
             )
         );
+
+        //TODO: metadata to contain information about the car. colour year of matriculation etc.
         return tokenId;
     } 
 
+
+
     //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
-    function getMontlyQuota(uint256 carTokenID, uint256 yearsOfDivingExperience, uint256 milageCap, uint256 contractDuration) 
+
+    function getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration) 
     view public 
+    //Cost no gas unless called fro a SC
     returns(uint256 montlyQuota){
+
         //function just to check if things work
-        return boydCars[carTokenID].originalValue;
+        return boydCars[tokenID].originalValue;
     }
 
+    function isCarAvailable(uint256 tokenId) internal view returns(bool){
+        return boydCars[tokenId].isAvailable;
+    }
+    
+    function hasActiveContract(address customer) view internal returns(bool){
+        return addressToContract[customer].isActive;
+    }
+
+    function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration)
+    external payable{
+        require(isCarAvailable(tokenId), "That Car is not available");
+        require(!hasActiveContract(msg.sender), "You're already leasing a car. Only one car per customer.");
+        delete addressToContract[msg.sender];
+
+        uint256 montlyQuota = getMontlyQuota(tokenId, yearsOfDrivingExperience, milageCap, contractDuration);
+        require(msg.value >= 4*montlyQuota, "First payment must include downpayment of 3 monthly quotas and payment for the first month.\n Run \"getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration)\" to see mothly quota");
+        uint change = msg.value - 4*montlyQuota;
+        payable(msg.sender).transfer(change);
+        leaseContract memory newDeal = leaseContract(tokenId, contractDuration, milageCap, montlyQuota, false);
+        addressToContract[msg.sender] = newDeal;
+        addressToTransferedPayment[msg.sender] += 4*montlyQuota;
+    }
+
+    function denyDeal(address payable customer) external onlyOwner{
+        require(!hasActiveContract(customer), "You cannot deny an active contract");
+        customer.transfer(4*addressToContract[customer].monthlyQuota);
+        delete addressToContract[customer];
+    }
+
+    function withDrawDeal() external {
+        require(!hasActiveContract(msg.sender), "You cannot withdraw an active contract");
+        payable(msg.sender).transfer(4*addressToContract[msg.sender].monthlyQuota);
+        delete addressToContract[msg.sender];
+    }
+
+    function approveDeal(address customer) external onlyOwner {
+        addressToContract[customer].isActive = true;
+        safeTransferFrom(owner(), customer, addressToContract[customer].tokenId);
+    }
+
+    function transferPaymentFromCustomer(address customer) external onlyOwner{
+        require(hasActiveContract(customer), "No active contract with this customer, approve pending contract or wait for contract proposal");
+        payable(owner()).transfer(addressToTransferedPayment[customer]);
+    }
 }

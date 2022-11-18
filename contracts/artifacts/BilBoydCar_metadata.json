@@ -112,11 +112,6 @@
 						"type": "string"
 					},
 					{
-						"internalType": "string",
-						"name": "color",
-						"type": "string"
-					},
-					{
 						"internalType": "uint256",
 						"name": "year",
 						"type": "uint256"
@@ -165,6 +160,19 @@
 				"inputs": [
 					{
 						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "approveDeal",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
 						"name": "owner",
 						"type": "address"
 					}
@@ -196,11 +204,6 @@
 						"type": "string"
 					},
 					{
-						"internalType": "string",
-						"name": "color",
-						"type": "string"
-					},
-					{
 						"internalType": "uint256",
 						"name": "year",
 						"type": "uint256"
@@ -214,9 +217,27 @@
 						"internalType": "uint256",
 						"name": "milage",
 						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isAvailable",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address payable",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "denyDeal",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -239,26 +260,66 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "getCarList",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "model",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "year",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "originalValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "milage",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isAvailable",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct BilBoydCar.Car[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "carTokenID",
+						"name": "tokenID",
 						"type": "uint256"
 					},
 					{
 						"internalType": "uint256",
-						"name": "yearsOfDivingExperience",
+						"name": "yearsOfDrivingExperience",
 						"type": "uint256"
 					},
 					{
-						"internalType": "uint256",
+						"internalType": "enum BilBoydCar.MilageCap",
 						"name": "milageCap",
-						"type": "uint256"
+						"type": "uint8"
 					},
 					{
-						"internalType": "uint256",
+						"internalType": "enum BilBoydCar.ContractDuration",
 						"name": "contractDuration",
-						"type": "uint256"
+						"type": "uint8"
 					}
 				],
 				"name": "getMontlyQuota",
@@ -297,6 +358,34 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "yearsOfDrivingExperience",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum BilBoydCar.MilageCap",
+						"name": "milageCap",
+						"type": "uint8"
+					},
+					{
+						"internalType": "enum BilBoydCar.ContractDuration",
+						"name": "contractDuration",
+						"type": "uint8"
+					}
+				],
+				"name": "makeDeal",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "name",
 				"outputs": [
@@ -307,6 +396,40 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"name": "onERC721Received",
+				"outputs": [
+					{
+						"internalType": "bytes4",
+						"name": "",
+						"type": "bytes4"
+					}
+				],
+				"stateMutability": "pure",
 				"type": "function"
 			},
 			{
@@ -503,6 +626,26 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "transferPaymentFromCustomer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withDrawDeal",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -670,10 +813,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0x534e881a4aa06175911d157c82b8096339f320318005c6457e3eaa94c17a4a87",
+			"keccak256": "0x88c58490b5a5d9036c90cdaf6f2cd30848876c29e246ac04a0943ce3d32efbb8",
+			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://a5193e57acbe39be1a2f141073f39e94a692525bc6ffd70fc3cbef07266dea4c",
-				"dweb:/ipfs/QmauhZttaM2jhRNYfhycrfaV9w9fcp8JzAB9My6kxGrZaq"
+				"bzz-raw://9dd8a74606338be8035fabb0ead2ab958843228f402393c247fb329ffa06e7ac",
+				"dweb:/ipfs/QmdPWi6Zt8nLxeoxQGguf4KaEPBzT1iDa4w2qxEAfoSbyV"
 			]
 		}
 	},
