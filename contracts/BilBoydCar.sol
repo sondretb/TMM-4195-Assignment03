@@ -95,6 +95,10 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
         return addressToContract[customer].isActive;
     }
 
+    function hasContract(address customer) view internal returns(bool){
+        return addressToContract[customer].monthlyQuota != 0;
+    }
+
     function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration)
     external payable{
         require(isCarAvailable(tokenId), "That Car is not available");
@@ -123,6 +127,8 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
     }
 
     function approveDeal(address customer) external onlyOwner {
+        require(!hasActiveContract(customer), "Contract allready approve.");
+        require(hasContract(customer), "This customer has no pending contract.");
         addressToContract[customer].isActive = true;
         safeTransferFrom(owner(), customer, addressToContract[customer].tokenId);
     }
