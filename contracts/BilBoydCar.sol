@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: UNLICENSED
+//SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
 
@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BilBoydCar is ERC721, Ownable{
     
-
     //Stores the car attributes that decide the montly quota.
     struct Car {
         string model;
@@ -19,6 +18,7 @@ contract BilBoydCar is ERC721, Ownable{
 
     struct LeaseContract {
         uint256 tokenId;
+        uint256 yearsOfDrivingExperience;
         ContractDuration duration;
         MilageCap milageCap;
         uint256 monthlyQuota;
@@ -29,7 +29,7 @@ contract BilBoydCar is ERC721, Ownable{
 
     uint256 billMaturityTime = 2 weeks;
 
-    enum ContractDuration { TwoYears, ThreeYears, FourYears}
+    enum ContractDuration {OneYear, TwoYears, ThreeYears, FourYears}
     enum MilageCap {Low, Medium, High}
     //Low = 30000, Medium = 45000, High = 60000
 
@@ -39,8 +39,6 @@ contract BilBoydCar is ERC721, Ownable{
     Car[] public boydCars;
     mapping(address => LeaseContract) addressToContract;
     mapping(address => uint256) addressToTransferedPayment;
-    
-    
 
     constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
         addCar("Honda s2000", 2003, 400000, 2000);
@@ -73,6 +71,9 @@ contract BilBoydCar is ERC721, Ownable{
         return tokenId;
     } 
 
+    function milageCapToMiles(MilageCap milageCap) internal pure returns(uint256){
+        return (uint(milageCap)+2)*15000;
+    }
 
 
     //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
@@ -109,7 +110,7 @@ contract BilBoydCar is ERC721, Ownable{
         uint change = msg.value - 4*montlyQuota;
         payable(msg.sender).transfer(change);
 
-        LeaseContract memory newDeal = LeaseContract(tokenId, contractDuration, milageCap, montlyQuota, false, 0, 0);
+        LeaseContract memory newDeal = LeaseContract(tokenId, yearsOfDrivingExperience, contractDuration, milageCap, montlyQuota, false, 0, 0);
         addressToContract[msg.sender] = newDeal;
         addressToTransferedPayment[msg.sender] += 4*montlyQuota;
     }
@@ -130,10 +131,13 @@ contract BilBoydCar is ERC721, Ownable{
     function approveDeal(address customer) external onlyOwner {
         require(!hasActiveContract(customer), "Contract allready approve.");
         require(hasContract(customer), "This customer has no pending contract.");
+        uint256 tokenId = addressToContract[customer].tokenId;
+        require(isCarAvailable(tokenId), "This car has allready been collected");
         addressToContract[customer].isActive = true;
-        addressToContract[customer].contractEndDate = block.timestamp + (uint(addressToContract[customer].duration) + 2)*52 weeks;
+        addressToContract[customer].contractEndDate = block.timestamp + (uint(addressToContract[customer].duration) + 1)*52 weeks;
         addressToContract[customer].lastPayment = block.timestamp;
         approve(customer, addressToContract[customer].tokenId);
+        boydCars[tokenId].isAvailable = false;
     }
 
     function transferPaymentFromCustomer(address customer) external onlyOwner{
@@ -190,7 +194,6 @@ contract BilBoydCar is ERC721, Ownable{
     function makeMonthlyPayment() external payable {
         require(hasActiveContract(msg.sender), "You have no active contract to pay for");
         require(hasPendingBill(msg.sender), "You have paid your mothly bill");
-        //LeaseContract storage customerContract = addressToContract[msg.sender];
         uint256 bill = calculateLeasingBill(msg.sender);
 
         if (isPaymentOverdue(msg.sender)){
@@ -216,12 +219,14 @@ contract BilBoydCar is ERC721, Ownable{
         require(hasActiveContract(customer), "This customer has no active contract");
 
         uint256 tokenId = addressToContract[customer].tokenId;
-        require(isInsolentCustomer(customer), "This customer is a good boy. you cannot tow the car.");
+        require(isInsolentCustomer(customer), "This customer has been a good boy. you cannot tow the car!");
 
-        uint256 downpayment = addressToContract[customer].monthlyQuota*3;
+        uint256 downPayment = addressToContract[customer].monthlyQuota*3;
         safeTransferFrom(customer, owner(), tokenId);
+        boydCars[tokenId].isAvailable = true;
+        delete addressToContract[customer];
 
-        addressToTransferedPayment[customer] += downpayment;
+        addressToTransferedPayment[customer] += downPayment;
     }
 
 
@@ -232,9 +237,42 @@ contract BilBoydCar is ERC721, Ownable{
     } 
 
     //task 5
+    function returnCarAndTerminateContract() external {
+        require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
+        require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
+        uint256 tokenId = addressToContract[msg.sender].tokenId;
+        require(ownerOf(tokenId) == msg.sender, "You don't have the car in your contract.");
 
+        uint256 downPayment = addressToContract[msg.sender].monthlyQuota*3;
+        payable(msg.sender).transfer(downPayment);
 
+        safeTransferFrom(msg.sender, owner(), tokenId);
 
+        delete addressToContract[msg.sender];
+        boydCars[tokenId].isAvailable = true;
+    }
 
+    function extendContractByOneYear(MilageCap newMilageCap) external payable{
+        require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
+        require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
+        uint256 tokenId = addressToContract[msg.sender].tokenId;
+        require(ownerOf(tokenId) == msg.sender, "You need to be in possession of the car in you contract");
 
+        LeaseContract storage customerContract = addressToContract[msg.sender];
+        customerContract.yearsOfDrivingExperience += uint(customerContract.duration) + 1;
+
+        boydCars[tokenId].milage += milageCapToMiles(customerContract.milageCap);
+        customerContract.contractEndDate = block.timestamp + 52 weeks;
+        customerContract.milageCap = newMilageCap;
+        uint256 oldMonthlyQuota = customerContract.monthlyQuota;
+        uint256 newMonthlyQuota = getMontlyQuota(tokenId, 
+        customerContract.yearsOfDrivingExperience, 
+        customerContract.milageCap, 
+        customerContract.duration);
+        require((3*oldMonthlyQuota + msg.value) >= 4*newMonthlyQuota, "Previous downpayment does not cover new downpayment and payment for the first month.");
+        uint256 change = (3*oldMonthlyQuota + msg.value) - 4*newMonthlyQuota;
+        payable(msg.sender).transfer(change);
+
+        addressToContract[msg.sender] = customerContract;
+    }
 }
