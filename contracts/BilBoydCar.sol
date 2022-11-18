@@ -35,6 +35,7 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
         // tokenId should be lenght of boydCars
     Car[] public boydCars;
     mapping(address => leaseContract) addressToContract;
+    mapping(address => uint256) addressToTransferedPayment;
     
     
 
@@ -57,7 +58,7 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
     function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage) public onlyOwner returns(uint256){
 
         uint256 tokenId = boydCars.length;
-        _safeMint(address(this), tokenId);
+        _safeMint(owner(), tokenId);
 
         boydCars.push(
             Car(
@@ -101,11 +102,12 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
         delete addressToContract[msg.sender];
 
         uint256 montlyQuota = getMontlyQuota(tokenId, yearsOfDrivingExperience, milageCap, contractDuration);
-        require(msg.value <= 4*montlyQuota, "First payment must include downpayment of 3 monthly quotas and payment for the first month.\n Run \"getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration)\" to see mothly quota");
+        require(msg.value >= 4*montlyQuota, "First payment must include downpayment of 3 monthly quotas and payment for the first month.\n Run \"getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration)\" to see mothly quota");
         uint change = msg.value - 4*montlyQuota;
         payable(msg.sender).transfer(change);
         leaseContract memory newDeal = leaseContract(tokenId, contractDuration, milageCap, montlyQuota, false);
         addressToContract[msg.sender] = newDeal;
+        addressToTransferedPayment[msg.sender] += 4*montlyQuota;
     }
 
     function denyDeal(address payable customer) external onlyOwner{
@@ -121,7 +123,12 @@ contract BilBoydCar is ERC721, IERC721Receiver, Ownable{
     }
 
     function approveDeal(address customer) external onlyOwner {
-        addressToContract[customer].isActive == true;
-        safeTransferFrom(address(this), customer, addressToContract[customer].tokenId);
+        addressToContract[customer].isActive = true;
+        safeTransferFrom(owner(), customer, addressToContract[customer].tokenId);
+    }
+
+    function transferPaymentFromCustomer(address customer) external onlyOwner{
+        require(hasActiveContract(customer), "No active contract with this customer, approve pending contract or wait for contract proposal");
+        payable(owner()).transfer(addressToTransferedPayment[customer]);
     }
 }

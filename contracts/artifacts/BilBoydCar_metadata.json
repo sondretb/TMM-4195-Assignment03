@@ -628,6 +628,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "transferPaymentFromCustomer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "withDrawDeal",
 				"outputs": [],
@@ -800,11 +813,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0x452efecd4624ed600fac30293586ba1ec5da824929881924f1c801483db5d2fb",
+			"keccak256": "0x88c58490b5a5d9036c90cdaf6f2cd30848876c29e246ac04a0943ce3d32efbb8",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://3d966da27305e72ca039f9a85fd37bb00aeedf9de7698139397fadb33eca94a7",
-				"dweb:/ipfs/QmZmJqH4JzpuzLpUf8pU6aq3NQsYH8kQobZFJed1h1RWw6"
+				"bzz-raw://9dd8a74606338be8035fabb0ead2ab958843228f402393c247fb329ffa06e7ac",
+				"dweb:/ipfs/QmdPWi6Zt8nLxeoxQGguf4KaEPBzT1iDa4w2qxEAfoSbyV"
 			]
 		}
 	},
