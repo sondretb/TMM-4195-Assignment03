@@ -3,9 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Reciever.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BilBoydCar is ERC721, Ownable{
+contract BilBoydCar is ERC721, IERC721Reciever, Ownable{
     
 
     //Stores the car attributes that decide the montly quota.
@@ -102,17 +103,20 @@ contract BilBoydCar is ERC721, Ownable{
         addressToContract[msg.sender] = newDeal;
     }
 
-    function denyDeal(address payable customer) onlyOwner{
+    function denyDeal(address payable customer) external onlyOwner{
+        require(!hasActiveContract(customer), "You cannot deny an active contract");
         customer.transfer(4*addressToContract[customer].montlyQuota);
         delete addressToContract[customer];
     }
 
     function withDrawDeal() external {
+        require(!hasActiveContract(msg.sender), "You cannot withdraw an active contract");
         customer.transfer(4*addressToContract[msg.sender].montlyQuota);
         delete addressToContract[msg.sender];
     }
 
-    function approveDeal(address customer) onlyOwner {
+    function approveDeal(address customer) external onlyOwner {
         addressToContract[customer].isActive == true;
+        safeTransferFrom(address(this), customer, addressToContract[customer].tokenId);
     }
 }
