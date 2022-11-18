@@ -413,7 +413,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "makeMontlyPayment",
+				"name": "makeMonthlyPayment",
 				"outputs": [],
 				"stateMutability": "payable",
 				"type": "function"
@@ -535,6 +535,19 @@
 					}
 				],
 				"name": "setApprovalForAll",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "simulateWeekWithCustomer",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -825,11 +838,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0xf839ccceb710381f3f2a3a014bba19852a129b6efd247dfd96cc0c7d06b80df7",
+			"keccak256": "0xc93afbc642747d0c781dbbe05d9ef8a3841061b08f20cd8adb04a7c30aa6ae51",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://8f99dfb84f72b031cfed216a42003b6c79f358957a2b553c77a8cc248c3a09a7",
-				"dweb:/ipfs/QmNc7n7PVTpXaCvjidM3i79jiYFZXuRreCg7BLghaS9bQX"
+				"bzz-raw://f3acf6ca1be8fbd31f70be68c29f9cccd40e4eccff539e565258427f341758d8",
+				"dweb:/ipfs/QmRGVKKkAP7Ypathm78LgXG7Vd2kq8bHSoNPETfbWxsHBM"
 			]
 		}
 	},

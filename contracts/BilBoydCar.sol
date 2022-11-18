@@ -27,6 +27,8 @@ contract BilBoydCar is ERC721, Ownable{
         uint256 lastPayment;
     }
 
+    uint256 billMaturityTime = 2 weeks;
+
     enum ContractDuration { TwoYears, ThreeYears, FourYears}
     enum MilageCap {Low, Medium, High}
     //Low = 30000, Medium = 45000, High = 60000
@@ -148,23 +150,46 @@ contract BilBoydCar is ERC721, Ownable{
     }
 
     function isPaymentOverdue(address customer) view internal returns(bool){
-        //TODO
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
+    }
+
+    function hasPendingBill(address customer) view internal returns(bool){
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks;
     }
 
     function isContractDurationFinished(address customer) view internal returns(bool){
-        //TODO
+        return block.timestamp >= addressToContract[customer].contractEndDate;
     }
 
     function calculateLeasingBill(address customer) view public returns(uint256){
-        //TODO
+        uint256 standardMonthlyQuota = addressToContract[customer].monthlyQuota;
+
+        require(!isContractDurationFinished(customer), "Contract is finished, return the car if you haven't yet to collect your downpayment.");
+        if (isPaymentOverdue(customer)){
+            uint256 timeOverdue = block.timestamp - addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
+            uint256 adjustedBill = standardMonthlyQuota*(1+timeOverdue/(2 weeks));
+            return adjustedBill;
+        }
+        else{
+            return standardMonthlyQuota;
+        }
     }
 
     function registerMontlyPayment(address customer) internal {
-        //TODO
+
+
+        if (isPaymentOverdue(customer)){
+            uint256 timeOverdue = block.timestamp - addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
+            addressToContract[customer].lastPayment += 4 weeks + timeOverdue;
+        }
+        else {
+        addressToContract[customer].lastPayment += 4 weeks;
+        }
     }
 
-    function makeMontlyPayment() payable external {
+    function makeMonthlyPayment() external payable {
         require(hasActiveContract(msg.sender), "You have no active contract to pay for");
+        require(hasPendingBill(msg.sender), "You have paid your mothly bill");
         //LeaseContract storage customerContract = addressToContract[msg.sender];
         uint256 bill = calculateLeasingBill(msg.sender);
 
@@ -179,9 +204,11 @@ contract BilBoydCar is ERC721, Ownable{
         addressToTransferedPayment[msg.sender] += bill;
     }
 
-    //A insolent customer is one month overdue 
+    //An insolent customer is over one month overdue 
     function isInsolentCustomer(address customer) view internal returns(bool){
-        //TODO
+        uint256 overDueLine = 4 weeks;
+
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime + overDueLine;
     }
 
 
@@ -196,6 +223,13 @@ contract BilBoydCar is ERC721, Ownable{
 
         addressToTransferedPayment[customer] += downpayment;
     }
+
+
+    //DEV FUNCTION
+    function simulateWeekWithCustomer(address customer) external onlyOwner{
+        addressToContract[customer].lastPayment -= 1 weeks;
+        addressToContract[customer].contractEndDate -= 1 weeks;
+    } 
 
     //task 5
 
