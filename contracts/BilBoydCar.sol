@@ -14,14 +14,27 @@ contract BilBoydCar is ERC721, Ownable{
         uint256 year;
         uint256 originalValue;
         uint256 milage;
+        bool isAvailable;
     }
+
+    struct leaseContract {
+        uint256 carToken;
+        contractDuration duration;
+        milageCap milageCap;
+        uint256 monthlyQuota;
+        bool isActive;
+    }
+
+    enum ContractDuration {TwoYears = 24, ThreeYears = 36, FourYears = 48};
+    enum MilageCap {Low = 30000, Medium = 45000, High = 60000}
+
+
     //list of cars, so we don't need to access the metadata. more memory but ok    
         // tokenId should be lenght of boydCars
     Car[] public boydCars;
-    //Example: to get model of car with tokenID = 'id'
-    //boyCars[id].model
-
-
+    mapping(address => leaseContract) addressToContract;
+    
+    
 
     constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
         addCar("Honda s2000", 2003, 400000, 2000);
@@ -30,18 +43,10 @@ contract BilBoydCar is ERC721, Ownable{
         addCar("Jaguar I-Pace S", 2021, 724900, 2000);
     }
 
+
     function getCarList() public view returns(Car[] memory){
         return boydCars;
     }
-
-
-/*
-    enum contractDuration {Day, Week, ThreeWeeks, Month};
-    mapping(contractDuration => uint256) contractDurationToInt
-
-    enum milageCap {Low, Medium, High, FreeRange}
-    mapping(milageCap => uint256) milageCapToInt
-*/
 
     function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage) public onlyOwner returns(uint256){
 
@@ -53,7 +58,8 @@ contract BilBoydCar is ERC721, Ownable{
                 model, 
                 year, 
                 originalValue,
-                milage
+                milage,
+                true
             )
         );
 
@@ -63,12 +69,7 @@ contract BilBoydCar is ERC721, Ownable{
 
 
 
-
-
-
-
     //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
-    //you can traditionally lease a car for 24, 36 or 48 months
 
     function getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration) 
     view public 
@@ -79,11 +80,39 @@ contract BilBoydCar is ERC721, Ownable{
         return boydCars[tokenID].originalValue ether;
     }
 
+    function isCarAvailable(uint256 tokenId) internal view returns(bool){
+        return boydCars[tokenId].isAvailable;
+    }
+    
+    function hasActiveContract(address customer) view internal{
+        return addressToContract[customer].isActive;
+    }
 
+    function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration)
+    external payable{
+        require(isCarAvailable(), "That Car is not available");
+        require(!hasActiveContract, "You're already leasing a car. Only one car per customer.");
+        delete addressToContract[msg.sender];
 
-    function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration)
-    public payable{
         uint256 montlyQuota = getMontlyQuota(tokenId, yearsOfDrivingExperience, milageCap, contractDuration);
-        require(3*montlyQuota == msg.value, "Downpayment must be equivalent to 3 monthly quotas. ")
+        require(msg.value <= 4*montlyQuota, "First payment must include downpayment of 3 monthly quotas and payment for the first month.\n Run \"getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, uint256 milageCap, uint256 contractDuration)\" to see mothly quota");
+        uint change = msg.value - 4*montlyQuota;
+        msg.sender.transfer(change);
+        leaseContract newDeal = new leaseContract(tokenId, contractduration, milageCap, montlyQuota);
+        addressToContract[msg.sender] = newDeal;
+    }
+
+    function denyDeal(address payable customer) onlyOwner{
+        customer.transfer(4*addressToContract[customer].montlyQuota);
+        delete addressToContract[customer];
+    }
+
+    function withDrawDeal() external {
+        customer.transfer(4*addressToContract[msg.sender].montlyQuota);
+        delete addressToContract[msg.sender];
+    }
+
+    function approveDeal(address customer) onlyOwner {
+        addressToContract[customer].isActive == true;
     }
 }
