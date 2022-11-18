@@ -13,6 +13,7 @@ contract BilBoydCar is ERC721, Ownable{
         uint256 year;
         uint256 originalValue;
         uint256 milage;
+        string color;
         bool isAvailable;
     }
 
@@ -41,17 +42,17 @@ contract BilBoydCar is ERC721, Ownable{
     mapping(address => uint256) addressToTransferedPayment;
 
     constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
-        addCar("Honda s2000", 2003, 400000, 2000);
-        addCar("Toyota Yaris", 2010, 289000, 2000);
-        addCar("Audi A4", 2018, 410000, 2000);
-        addCar("Jaguar I-Pace S", 2021, 724900, 2000);
+        addCar("Honda s2000", 2003, 400000, 210000, "Red");
+        addCar("Toyota Yaris", 2010, 289000, 96000, "White");
+        addCar("Audi A4", 2018, 410000, 32000, "Black");
+        addCar("Jaguar I-Pace S", 2021, 724900, 12000, "Titanium");
     }
 
     function getCarList() public view returns(Car[] memory){
         return boydCars;
     }
 
-    function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage) public onlyOwner returns(uint256){
+    function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage, string memory color) public onlyOwner returns(uint256){
 
         uint256 tokenId = boydCars.length;
         _safeMint(owner(), tokenId);
@@ -63,6 +64,7 @@ contract BilBoydCar is ERC721, Ownable{
                 year, 
                 originalValue,
                 milage,
+                color,
                 true
             )
         );
@@ -252,8 +254,8 @@ contract BilBoydCar is ERC721, Ownable{
         boydCars[tokenId].isAvailable = true;
     }
 
-    function extendContractByOneYear(MilageCap newMilageCap) external payable{
 
+    function extendContractByOneYear(MilageCap newMilageCap) external payable{
         require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
         require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
         uint256 tokenId = addressToContract[msg.sender].tokenId;
@@ -277,7 +279,9 @@ contract BilBoydCar is ERC721, Ownable{
         addressToContract[msg.sender] = customerContract;
     }
 
-    
+    function returnCarAndLeaseNewVechicle(uint256 newCarTokenId, MilageCap newMilageCap, ContractDuration newContractduration) external payable {
+        //TODO - Worst case, terminate the contract and make a new one 
+    }
 
 
 }

@@ -125,6 +125,11 @@
 						"internalType": "uint256",
 						"name": "milage",
 						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "color",
+						"type": "string"
 					}
 				],
 				"name": "addCar",
@@ -217,6 +222,11 @@
 						"internalType": "uint256",
 						"name": "milage",
 						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "color",
+						"type": "string"
 					},
 					{
 						"internalType": "bool",
@@ -323,6 +333,11 @@
 								"internalType": "uint256",
 								"name": "milage",
 								"type": "uint256"
+							},
+							{
+								"internalType": "string",
+								"name": "color",
+								"type": "string"
 							},
 							{
 								"internalType": "bool",
@@ -481,6 +496,29 @@
 				"name": "renounceOwnership",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "newCarTokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum BilBoydCar.MilageCap",
+						"name": "newMilageCap",
+						"type": "uint8"
+					},
+					{
+						"internalType": "enum BilBoydCar.ContractDuration",
+						"name": "newContractduration",
+						"type": "uint8"
+					}
+				],
+				"name": "returnCarAndLeaseNewVechicle",
+				"outputs": [],
+				"stateMutability": "payable",
 				"type": "function"
 			},
 			{
@@ -858,11 +896,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0x4ee8c349f879cc3e0fe0d499947c5b0ceb9758117e2f6785157e5f0d6bdcf60c",
+			"keccak256": "0x1bcb749739e2167c29d75eb9e97efabc0ce6bf2fa4b6501f9b00e4ef9b2a495c",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6c3b0f0fe82a948a06b6a6e0d25e34208c7e65f03e51962092ff9463050242ab",
-				"dweb:/ipfs/QmZP2296uvtWfAbff7WuVX3xx1Nw4Lf2j6EWYmebRcLSxS"
+				"bzz-raw://053e888e73384d2330fb1f5e7cc0bc12147c5a4ed049694a5d9c49a259a611e4",
+				"dweb:/ipfs/QmUmcc3bW9hqn8VyoKwAKja2ZQNJo9U69JFeKu1gjXhKaB"
 			]
 		}
 	},
