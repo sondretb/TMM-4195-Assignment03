@@ -130,6 +130,11 @@
 						"internalType": "string",
 						"name": "color",
 						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenUri",
+						"type": "string"
 					}
 				],
 				"name": "addCar",
@@ -773,9 +778,6 @@
 				"symbol()": {
 					"details": "See {IERC721Metadata-symbol}."
 				},
-				"tokenURI(uint256)": {
-					"details": "See {IERC721Metadata-tokenURI}."
-				},
 				"transferFrom(address,address,uint256)": {
 					"details": "See {IERC721-transferFrom}."
 				},
@@ -839,6 +841,14 @@
 				"dweb:/ipfs/QmYvPafLfoquiDMEj7CKHtvbgHu7TJNPSVPSCjrtjV8HjV"
 			]
 		},
+		"@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol": {
+			"keccak256": "0x5c3501c1b70fcfc64417e9da5cc6a3597191baa354781e508e1e14cc0e50a038",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://899c87a849a94c848818d0afede6961d2c87665af1dd23a5c983e78981a65691",
+				"dweb:/ipfs/QmUeFDffQRDmX87FX3MRxN3bmpUxDTWpWLwPJzeAJ3yF6H"
+			]
+		},
 		"@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
 			"keccak256": "0x75b829ff2f26c14355d1cba20e16fe7b29ca58eb5fef665ede48bc0f9c6c74b9",
 			"license": "MIT",
@@ -896,11 +906,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0x1bcb749739e2167c29d75eb9e97efabc0ce6bf2fa4b6501f9b00e4ef9b2a495c",
+			"keccak256": "0xda73c20f8ca98435ad409bda124c04afdd23629d7afbc906e1141e248b3b0814",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://053e888e73384d2330fb1f5e7cc0bc12147c5a4ed049694a5d9c49a259a611e4",
-				"dweb:/ipfs/QmUmcc3bW9hqn8VyoKwAKja2ZQNJo9U69JFeKu1gjXhKaB"
+				"bzz-raw://3be5ae3fe36970ef9c94ce1bbd597b7fc1c84d89d9fa6b4a36bee253c93df4f1",
+				"dweb:/ipfs/QmcShNDHvbpyXLYZtxq2C3JkEeLBDFhqCdYYhP5TB8DQBM"
 			]
 		}
 	},

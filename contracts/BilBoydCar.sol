@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract BilBoydCar is ERC721, Ownable{
+contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
     
     //Stores the car attributes that decide the montly quota.
     struct Car {
@@ -42,20 +43,29 @@ contract BilBoydCar is ERC721, Ownable{
     mapping(address => uint256) addressToTransferedPayment;
 
     constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
-        addCar("Honda s2000", 2003, 400000, 210000, "Red");
-        addCar("Toyota Yaris", 2010, 289000, 96000, "White");
-        addCar("Audi A4", 2018, 410000, 32000, "Black");
-        addCar("Jaguar I-Pace S", 2021, 724900, 12000, "Titanium");
+        addCar("Honda s2000", 2003, 400000, 210000, "Red", "https://ipfs.io/ipfs/QmTkcQkAHDSExyHSPZQgDi2dAVmDKEg4WC8FdyrNZ9T3i5?filename=Honda s2000.json");
+        addCar("Toyota Yaris", 2010, 289000, 96000, "White", "https://ipfs.io/ipfs/QmNtRysb4Lp35WzhbnTn8mdLsYZE8BDhxzRfg3ZFNiuSGd?filename=Toyota Yaris.json");
+        addCar("Audi A4", 2018, 410000, 32000, "Black", "https://ipfs.io/ipfs/QmUff9JzAQCP4YiXSGgBYZMWXADTjWnGV3AktPpyM88frV?filename=Audi A4.json");
+        addCar("Jaguar I-Pace S", 2021, 724900, 12000, "Titanium", "https://ipfs.io/ipfs/QmbzWwvE1FMXcHebTNFHdh9w1vB8NaZ4aRuZXTeDKu5fNJ?filename=Jaguar I-Pace S.json");
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(tokenId);
     }
 
     function getCarList() public view returns(Car[] memory){
         return boydCars;
     }
 
-    function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage, string memory color) public onlyOwner returns(uint256){
+    function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage, string memory color, string memory tokenUri) public onlyOwner returns(uint256){
 
         uint256 tokenId = boydCars.length;
         _safeMint(owner(), tokenId);
+        _setTokenURI(tokenId, tokenUri);
         approve(address(this),tokenId);
 
         boydCars.push(
@@ -77,18 +87,6 @@ contract BilBoydCar is ERC721, Ownable{
         return (uint(milageCap)+2)*15000;
     }
 
-
-    //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
-
-    function getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration) 
-    view public 
-    //Cost no gas unless called fro a SC
-    returns(uint256 montlyQuota){
-
-        //function just to check if things work
-        return boydCars[tokenID].originalValue;
-    }
-
     function isCarAvailable(uint256 tokenId) internal view returns(bool){
         return boydCars[tokenId].isAvailable;
     }
@@ -100,6 +98,51 @@ contract BilBoydCar is ERC721, Ownable{
     function hasContract(address customer) view internal returns(bool){
         return addressToContract[customer].monthlyQuota != 0;
     }
+
+    function isPaymentOverdue(address customer) view internal returns(bool){
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
+    }
+
+    function hasPendingBill(address customer) view internal returns(bool){
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks;
+    }
+
+    function isContractDurationFinished(address customer) view internal returns(bool){
+        return block.timestamp >= addressToContract[customer].contractEndDate;
+    }
+
+    function isInsolentCustomer(address customer) view internal returns(bool){
+        uint256 overDueLine = 4 weeks;
+
+        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime + overDueLine;
+    }
+
+
+    //TASK2
+
+    //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
+
+    function getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration) 
+    view public 
+    //Cost no gas unless called fro a SC
+    returns(uint256 montlyQuota){
+        uint256 milageFactor = (uint(milageCap))*1 gwei;
+        uint256 durationFactor = (uint(contractDuration))*boydCars[tokenID].originalValue*1 gwei;
+        uint256 experiencePrize;
+        uint256 milagePrizeReduction = boydCars[tokenID].milage * 1 gwei / 6;
+        if (yearsOfDrivingExperience >= 5){
+            experiencePrize = 1 gwei/5;
+        }
+        else{
+            experiencePrize = 0;
+        }
+        
+        //function just to check if things work
+        return milageFactor + durationFactor + experiencePrize - milagePrizeReduction;
+    }
+
+
+    //TASK3    
 
     function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration)
     external payable{
@@ -129,7 +172,6 @@ contract BilBoydCar is ERC721, Ownable{
         delete addressToContract[msg.sender];
     }
 
-
     function approveDeal(address customer) external onlyOwner {
         require(!hasActiveContract(customer), "Contract allready approve.");
         require(hasContract(customer), "This customer has no pending contract.");
@@ -155,17 +197,9 @@ contract BilBoydCar is ERC721, Ownable{
         approve(owner(), tokenId);
     }
 
-    function isPaymentOverdue(address customer) view internal returns(bool){
-        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
-    }
 
-    function hasPendingBill(address customer) view internal returns(bool){
-        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks;
-    }
+   //TASK4
 
-    function isContractDurationFinished(address customer) view internal returns(bool){
-        return block.timestamp >= addressToContract[customer].contractEndDate;
-    }
 
     function calculateLeasingBill(address customer) view public returns(uint256){
         uint256 standardMonthlyQuota = addressToContract[customer].monthlyQuota;
@@ -182,8 +216,6 @@ contract BilBoydCar is ERC721, Ownable{
     }
 
     function registerMontlyPayment(address customer) internal {
-
-
         if (isPaymentOverdue(customer)){
             uint256 timeOverdue = block.timestamp - addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
             addressToContract[customer].lastPayment += 4 weeks + timeOverdue;
@@ -209,14 +241,6 @@ contract BilBoydCar is ERC721, Ownable{
         addressToTransferedPayment[msg.sender] += bill;
     }
 
-    //An insolent customer is over one month overdue 
-    function isInsolentCustomer(address customer) view internal returns(bool){
-        uint256 overDueLine = 4 weeks;
-
-        return block.timestamp >= addressToContract[customer].lastPayment + 4 weeks + billMaturityTime + overDueLine;
-    }
-
-
     function towLeasedCar(address customer) external onlyOwner {
         require(hasActiveContract(customer), "This customer has no active contract");
 
@@ -232,13 +256,9 @@ contract BilBoydCar is ERC721, Ownable{
     }
 
 
-    //DEV FUNCTION
-    function simulateWeekWithCustomer(address customer) external onlyOwner{
-        addressToContract[customer].lastPayment -= 1 weeks;
-        addressToContract[customer].contractEndDate -= 1 weeks;
-    } 
+     //TASK 5
 
-    //task 5
+    
     function returnCarAndTerminateContract() external {
         require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
         require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
@@ -284,4 +304,9 @@ contract BilBoydCar is ERC721, Ownable{
     }
 
 
+    //DEV FUNCTION
+    function simulateWeekWithCustomer(address customer) external onlyOwner{
+        addressToContract[customer].lastPayment -= 1 weeks;
+        addressToContract[customer].contractEndDate -= 1 weeks;
+    }
 }
