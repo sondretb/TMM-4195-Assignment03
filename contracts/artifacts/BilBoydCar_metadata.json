@@ -825,11 +825,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0xd1044f760cf1c24bb5ed157084ee7ed5923d0709e6a6378fb3c8471ee4261ed9",
+			"keccak256": "0xf839ccceb710381f3f2a3a014bba19852a129b6efd247dfd96cc0c7d06b80df7",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://ff1b2a5d1cc34e502fc8f14685fa1b914139d539994d4407485765fb29f14f1d",
-				"dweb:/ipfs/QmRJdgjAE6kBM2g5aCjnmfhXLPjgha9RW1pesUMwroHpMo"
+				"bzz-raw://8f99dfb84f72b031cfed216a42003b6c79f358957a2b553c77a8cc248c3a09a7",
+				"dweb:/ipfs/QmNc7n7PVTpXaCvjidM3i79jiYFZXuRreCg7BLghaS9bQX"
 			]
 		}
 	},
