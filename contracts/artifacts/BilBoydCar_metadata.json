@@ -517,7 +517,7 @@
 					},
 					{
 						"internalType": "enum BilBoydCar.ContractDuration",
-						"name": "newContractduration",
+						"name": "newContractDuration",
 						"type": "uint8"
 					}
 				],
@@ -611,6 +611,19 @@
 					}
 				],
 				"name": "simulateWeekWithCustomer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					}
+				],
+				"name": "simulateyearWithCustomer",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -906,11 +919,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0xda73c20f8ca98435ad409bda124c04afdd23629d7afbc906e1141e248b3b0814",
+			"keccak256": "0xc243b67f1849170062f24bb9322fca82096a515416f84115bc5a14ec6db92bde",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://3be5ae3fe36970ef9c94ce1bbd597b7fc1c84d89d9fa6b4a36bee253c93df4f1",
-				"dweb:/ipfs/QmcShNDHvbpyXLYZtxq2C3JkEeLBDFhqCdYYhP5TB8DQBM"
+				"bzz-raw://82927872f44f2ba94f9816f1b0ada7f8369f3576555edfef820964a75b3601a2",
+				"dweb:/ipfs/Qmbbhc485m3KZ1GE6VwYwDxumnBmKgj3uccUr297K8ozVi"
 			]
 		}
 	},

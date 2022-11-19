@@ -7,8 +7,47 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
+
+    //Implementing and overriding needed functions
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(tokenId);
+    }
+
+    //Override the transfers so that the customer cant run of with the nft
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+        if (ownerOf(tokenId) != owner()){
+            require(to == owner(), "This is bilboyds car, you cannot give it away");
+        }
+        _transfer(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public virtual override {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+        if (ownerOf(tokenId) != owner()){
+            require(to == owner(), "This is bilboyds car, you cannot give it away");
+        }
+        _safeTransfer(from, to, tokenId, data);
+    }
     
-    //Stores the car attributes that decide the montly quota.
+
+
+
+    //Stores the car attributes, most of which help calculate the monthlyQuota
     struct Car {
         string model;
         uint256 year;
@@ -18,6 +57,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         bool isAvailable;
     }
 
+    //Stores information about a contract
     struct LeaseContract {
         uint256 tokenId;
         uint256 yearsOfDrivingExperience;
@@ -29,6 +69,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         uint256 lastPayment;
     }
 
+    //The maturity time of the monthly bills to customers
     uint256 billMaturityTime = 2 weeks;
 
     enum ContractDuration {OneYear, TwoYears, ThreeYears, FourYears}
@@ -36,31 +77,29 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
     //Low = 30000, Medium = 45000, High = 60000
 
 
-    //list of cars, so we don't need to access the metadata. more memory but ok    
-        // tokenId should be lenght of boydCars
+    //list of cars, so we don't need to access the metadata.   
+    // tokenId is the index
     Car[] public boydCars;
     mapping(address => LeaseContract) addressToContract;
     mapping(address => uint256) addressToTransferedPayment;
 
+
     constructor () ERC721 ("Bil Boyd Car", "BBCAR"){
+        //cars to start with
         addCar("Honda s2000", 2003, 400000, 210000, "Red", "https://ipfs.io/ipfs/QmTkcQkAHDSExyHSPZQgDi2dAVmDKEg4WC8FdyrNZ9T3i5?filename=Honda s2000.json");
         addCar("Toyota Yaris", 2010, 289000, 96000, "White", "https://ipfs.io/ipfs/QmNtRysb4Lp35WzhbnTn8mdLsYZE8BDhxzRfg3ZFNiuSGd?filename=Toyota Yaris.json");
         addCar("Audi A4", 2018, 410000, 32000, "Black", "https://ipfs.io/ipfs/QmUff9JzAQCP4YiXSGgBYZMWXADTjWnGV3AktPpyM88frV?filename=Audi A4.json");
         addCar("Jaguar I-Pace S", 2021, 724900, 12000, "Titanium", "https://ipfs.io/ipfs/QmbzWwvE1FMXcHebTNFHdh9w1vB8NaZ4aRuZXTeDKu5fNJ?filename=Jaguar I-Pace S.json");
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
-        super._burn(tokenId);
-    }
+    
 
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
-    }
 
     function getCarList() public view returns(Car[] memory){
         return boydCars;
     }
 
+    //Function to add a new car to bilBoyd
     function addCar(string memory model, uint256 year, uint256 originalValue, uint256 milage, string memory color, string memory tokenUri) public onlyOwner returns(uint256){
 
         uint256 tokenId = boydCars.length;
@@ -78,11 +117,11 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
                 true
             )
         );
-
-        //TODO: metadata to contain information about the car. colour year of matriculation etc.
         return tokenId;
     } 
 
+
+    //Internal functions needed for implementation
     function milageCapToMiles(MilageCap milageCap) internal pure returns(uint256){
         return (uint(milageCap)+2)*15000;
     }
@@ -118,18 +157,19 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
     }
 
 
+
     //TASK2
 
-    //milageCap and Contract duration could be changed to use a enum on mapping thingy instead.
 
+    //Function that calculated the montly quota based on parameters.
     function getMontlyQuota(uint256 tokenID, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration) 
     view public 
     //Cost no gas unless called fro a SC
     returns(uint256 montlyQuota){
-        uint256 milageFactor = (uint(milageCap))*1 gwei;
-        uint256 durationFactor = (uint(contractDuration))*boydCars[tokenID].originalValue*1 gwei;
+        uint256 milageFactor = (uint(milageCap))*4 gwei;
+        uint256 durationFactor = (uint(contractDuration)+1)*boydCars[tokenID].originalValue*1 gwei/10000;
         uint256 experiencePrize;
-        uint256 milagePrizeReduction = boydCars[tokenID].milage * 1 gwei / 6;
+        uint256 milagePrizeReduction = boydCars[tokenID].milage * 1 gwei / 6000;
         if (yearsOfDrivingExperience >= 5){
             experiencePrize = 1 gwei/5;
         }
@@ -142,10 +182,12 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
     }
 
 
+
     //TASK3    
 
+    //Function to make a deal proposal for car 'tokenId'
     function makeDeal(uint256 tokenId, uint256 yearsOfDrivingExperience, MilageCap milageCap, ContractDuration contractDuration)
-    external payable{
+    public payable{
         require(isCarAvailable(tokenId), "That Car is not available");
         require(!hasActiveContract(msg.sender), "You're already leasing a car. Only one car per customer.");
         delete addressToContract[msg.sender];
@@ -157,21 +199,24 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
 
         LeaseContract memory newDeal = LeaseContract(tokenId, yearsOfDrivingExperience, contractDuration, milageCap, montlyQuota, false, 0, 0);
         addressToContract[msg.sender] = newDeal;
-        addressToTransferedPayment[msg.sender] += 4*montlyQuota;
     }
 
+    //Owner has the right to deny the deal proposal
     function denyDeal(address payable customer) external onlyOwner{
         require(!hasActiveContract(customer), "You cannot deny an active contract");
+        require(hasContract(customer), "You don't have a contract");
         customer.transfer(4*addressToContract[customer].monthlyQuota);
         delete addressToContract[customer];
     }
 
+    //Customer can withdraw the deal proposal
     function withDrawDeal() external {
         require(!hasActiveContract(msg.sender), "You cannot withdraw an active contract");
         payable(msg.sender).transfer(4*addressToContract[msg.sender].monthlyQuota);
         delete addressToContract[msg.sender];
     }
 
+    //Function to approve a pending deal. This gives the cutomer the right to Collect the car, and the owner can collect the montly payment, the donwPayment stays locked.
     function approveDeal(address customer) external onlyOwner {
         require(!hasActiveContract(customer), "Contract allready approve.");
         require(hasContract(customer), "This customer has no pending contract.");
@@ -181,18 +226,22 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         addressToContract[customer].contractEndDate = block.timestamp + (uint(addressToContract[customer].duration) + 1)*52 weeks;
         addressToContract[customer].lastPayment = block.timestamp;
         approve(customer, addressToContract[customer].tokenId);
+        addressToTransferedPayment[customer] += addressToContract[customer].monthlyQuota;
         boydCars[tokenId].isAvailable = false;
     }
 
+    //Owner can collect payment from customer.
     function transferPaymentFromCustomer(address customer) external onlyOwner{
         require(hasActiveContract(customer), "No active contract with this customer, approve pending contract or wait for contract proposal");
         payable(owner()).transfer(addressToTransferedPayment[customer]);
+        addressToTransferedPayment[customer] = 0;
     }
 
+    //Customer can collect the car when the deal is accepted.
     function collectCar() external {
         uint256 tokenId = addressToContract[msg.sender].tokenId;
         require(hasActiveContract(msg.sender), "No contract of yours has been approved");
-        require(isCarAvailable(tokenId), "This car has allready been collected");
+        require(ownerOf(tokenId) == owner(), "This car has allready been collected");
         safeTransferFrom(owner(), msg.sender, tokenId);
         approve(owner(), tokenId);
     }
@@ -200,7 +249,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
 
    //TASK4
 
-
+    //Calculated the mothly bill, you pay more if the payment is overdue.
     function calculateLeasingBill(address customer) view public returns(uint256){
         uint256 standardMonthlyQuota = addressToContract[customer].monthlyQuota;
 
@@ -215,6 +264,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         }
     }
 
+    //Registers that the monthly payment payed, if the payment is overdue the next payment is shifted.
     function registerMontlyPayment(address customer) internal {
         if (isPaymentOverdue(customer)){
             uint256 timeOverdue = block.timestamp - addressToContract[customer].lastPayment + 4 weeks + billMaturityTime;
@@ -225,6 +275,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         }
     }
 
+    //Called each month to pay the bill, bill is higher if maturity period is over.
     function makeMonthlyPayment() external payable {
         require(hasActiveContract(msg.sender), "You have no active contract to pay for");
         require(hasPendingBill(msg.sender), "You have paid your mothly bill");
@@ -241,6 +292,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         addressToTransferedPayment[msg.sender] += bill;
     }
 
+    //Owner can tow the car if the customer is insolent (overdue more than a month), and reclaim the NFT.
     function towLeasedCar(address customer) external onlyOwner {
         require(hasActiveContract(customer), "This customer has no active contract");
 
@@ -258,8 +310,8 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
 
      //TASK 5
 
-    
-    function returnCarAndTerminateContract() external {
+    //when the contract is over the customer can terminate the contract
+    function returnCarAndTerminateContract() public {
         require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
         require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
         uint256 tokenId = addressToContract[msg.sender].tokenId;
@@ -270,11 +322,12 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
 
         safeTransferFrom(msg.sender, owner(), tokenId);
 
+        boydCars[tokenId].milage += milageCapToMiles(addressToContract[msg.sender].milageCap);
         delete addressToContract[msg.sender];
         boydCars[tokenId].isAvailable = true;
     }
 
-
+    //When the contract is over the customer can extend the contract with new rates.
     function extendContractByOneYear(MilageCap newMilageCap) external payable{
         require (hasActiveContract(msg.sender), "You don't have an active contract and therefore no leased car.");
         require(isContractDurationFinished(msg.sender), "Your contract is not yet finished.");
@@ -299,14 +352,26 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         addressToContract[msg.sender] = customerContract;
     }
 
-    function returnCarAndLeaseNewVechicle(uint256 newCarTokenId, MilageCap newMilageCap, ContractDuration newContractduration) external payable {
-        //TODO - Worst case, terminate the contract and make a new one 
+    //When the contract is over the customer can lease a new vehicle.
+    function returnCarAndLeaseNewVechicle(uint256 newCarTokenId, MilageCap newMilageCap, ContractDuration newContractDuration) external payable {
+        //TODO - Worst case, terminate the contract and make a new one
+        uint256 yearsOfDrivingExperience = addressToContract[msg.sender].yearsOfDrivingExperience + uint(addressToContract[msg.sender].duration) + 1;
+        returnCarAndTerminateContract();
+        makeDeal(newCarTokenId, yearsOfDrivingExperience, newMilageCap, newContractDuration); 
+
+
     }
 
 
     //DEV FUNCTION
-    function simulateWeekWithCustomer(address customer) external onlyOwner{
+    //Skip forward one week with one customer.
+    function simulateWeekWithCustomer(address customer) external {
         addressToContract[customer].lastPayment -= 1 weeks;
         addressToContract[customer].contractEndDate -= 1 weeks;
+    }
+
+    function simulateyearWithCustomer(address customer) external {
+        addressToContract[customer].lastPayment -= 52 weeks;
+        addressToContract[customer].contractEndDate -= 52 weeks;
     }
 }
