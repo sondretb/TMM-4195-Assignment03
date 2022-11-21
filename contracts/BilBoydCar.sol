@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -27,7 +27,12 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
         if (ownerOf(tokenId) != owner()){
             require(to == owner(), "This is bilboyds car, you cannot give it away");
+            if (msg.sender == owner()){
+                require(isContractDurationFinished(from), "This customer has no active Contract with you"); //Bug fixed
+                require(isInsolentCustomer(to), "This customer is not isolent");
+            }
         }
+
         _transfer(from, to, tokenId);
     }
 
@@ -40,6 +45,10 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
         if (ownerOf(tokenId) != owner()){
             require(to == owner(), "This is bilboyds car, you cannot give it away");
+            if (msg.sender == owner()){
+                require(isContractDurationFinished(from), "This customer has no active Contract with you"); //Bug fixed
+                require(isInsolentCustomer(to), "This customer is not isolent");
+            }
         }
         _safeTransfer(from, to, tokenId, data);
     }
@@ -171,10 +180,10 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         uint256 experiencePrize;
         uint256 milagePrizeReduction = boydCars[tokenID].milage * 1 gwei / 6000;
         if (yearsOfDrivingExperience >= 5){
-            experiencePrize = 1 gwei/5;
+            experiencePrize = 0; //Bug Fixed
         }
         else{
-            experiencePrize = 0;
+            experiencePrize = 1 gwei/5;
         }
         
         //function just to check if things work
@@ -290,6 +299,7 @@ contract BilBoydCar is ERC721, ERC721URIStorage, Ownable{
         uint256 change = msg.value-bill;
         payable(msg.sender).transfer(change);
         addressToTransferedPayment[msg.sender] += bill;
+        registerMontlyPayment(msg.sender);
     }
 
     //Owner can tow the car if the customer is insolent (overdue more than a month), and reclaim the NFT.
