@@ -919,11 +919,11 @@
 			]
 		},
 		"contracts/BilBoydCar.sol": {
-			"keccak256": "0xc243b67f1849170062f24bb9322fca82096a515416f84115bc5a14ec6db92bde",
+			"keccak256": "0x77db92901cf4bd41384705aee70fdd0510495598d7453f12105f60df40ae5cdc",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://82927872f44f2ba94f9816f1b0ada7f8369f3576555edfef820964a75b3601a2",
-				"dweb:/ipfs/Qmbbhc485m3KZ1GE6VwYwDxumnBmKgj3uccUr297K8ozVi"
+				"bzz-raw://a206fb96d68733989cec1bb2cfed6c047f4d1570367cc4a79d16fb1f1327d0dc",
+				"dweb:/ipfs/QmaET29AFTQztaEJCN7oF28Z5G3H57P1BZrDiLfVVLguKU"
 			]
 		}
 	},
